@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Song\StoreRequest;
+use App\Models\Album;
 use App\Models\Artist;
 use App\Models\Song;
 use App\Service\CurlClient;
@@ -30,12 +31,20 @@ class HomeController extends BaseController
 
         $dom = $parser->loadFromUrl($data['yandexMusicUrl'], [], new CurlClient());
         $artistData = $dom->getArtistData();
-        if ( $this->service->exists($artistData) ) return redirect()->route('home')->with('error_message', 'Исполнитель уже есть в базе');
+
+        if ($this->service->exists($artistData)) return redirect()->route('home')->with('error_message', 'Исполнитель уже есть в базе');
 
 
         $artist = Artist::firstOrCreate($artistData);
         $songsData = $dom->getSongsData($artist);
-        DB::table('songs')->insert($songsData);
+
+        $albumsData = $dom->getAlbumsData($songsData, $artist);
+        DB::table('albums')->insert($albumsData);
+
+        $albums = Album::with('artist')->get();
+
+        $songsResultData = $dom->getSongsResultData($songsData, $albums);
+        DB::table('songs')->insert($songsResultData);
 
         return redirect()->route('home')->with('message', 'Данные успешно добавлены в базу');
     }

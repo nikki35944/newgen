@@ -15,13 +15,16 @@ return new class extends Migration
             $table->id();
             $table->text('title');
             $table->text('duration');
-            $table->text('album_name');
 
             $table->timestamps();
 
             $table->unsignedBigInteger('artist_id');
             $table->index('artist_id', 'artist_song_idx');
             $table->foreign('artist_id', 'artist_song_fk')->on('artists')->references('id');
+
+            $table->unsignedBigInteger('album_id');
+            $table->index('album_id', 'album_song_idx');
+            $table->foreign('album_id', 'album_song_fk')->on('albums')->references('id');
         });
     }
 
